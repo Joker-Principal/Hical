@@ -318,16 +318,3 @@ jobs:
             grep -q "OK ] $t" <<< "$out" || { echo "::error::$t 没有执行，profiling 用例可能根本没编进来"; exit 1; }
           done
           echo "MiddlewareProfilingTest 三条关键用例均已执行通过"
-
-  # ── PR 自动打标签 ──
-  labeler:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/labeler@v5
-        with:
-          sync-labels: true

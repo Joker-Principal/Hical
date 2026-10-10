@@ -1,0 +1,29 @@
+name: Labeler
+
+# 为什么单独拆一个 workflow 用 pull_request_target：
+# 走 pull_request 触发时，fork 提上来的 PR 拿到的 GITHUB_TOKEN 会被强制降成只读，
+# 声明什么 permissions 都没用，labeler 加标签必然报 "Resource not accessible by integration"。
+# pull_request_target 跑在 base 仓库上下文里，用的是仓库自己的 token，有写权限，fork PR 也能打上标签。
+#
+# 安全前提：这个 workflow 只跑 labeler，只读 base 分支的 .github/labeler.yml，
+# 不执行 PR 里的任何代码。下面 checkout 显式钉在 base.sha 上，别改成默认取值——
+# 一旦 checkout 了 PR 的内容再拿去跑，等于把有写权限的 token 交给外部代码。
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+      - uses: actions/labeler@v5
+        with:
+          sync-labels: true
